@@ -1,0 +1,43 @@
+version: '3.4'
+
+services:
+  rabbitmqapp:
+    image: ${DOCKER_REGISTRY-}rabbitmqapp
+    build:
+      context: .
+      dockerfile: RabbitMQApp/Dockerfile
+    ports:
+      - 32769:80
+      - 32769:443
+    networks:
+      - rabbitmqapp-network
+    depends_on:
+      - rabbitmq
+      - jaeger
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    hostname: jaegertracing-server
+    container_name: jaeger
+    restart: on-failure
+    ports:
+      - 5775:5775/udp
+      - 6831:6831/udp
+      - 6832:6832/udp
+      - 5778:5778
+      - 16686:16686
+      - 14268:14268
+      - 9411:9411
+    networks:
+      - rabbitmqapp-network
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq-server
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - rabbitmqapp-network
+networks:
+  rabbitmqapp-network:
+    driver: bridge
